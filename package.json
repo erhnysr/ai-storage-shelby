@@ -1,0 +1,17 @@
+{
+  "name": "ai-storage-shelby",
+  "version": "1.0.0",
+  "description": "AI model versioning and decentralized storage using Shelby Protocol",
+  "main": "src/index.js",
+  "scripts": {
+    "upload": "node src/upload.js",
+    "download": "node src/download.js",
+    "list": "node src/list.js"
+  },
+  "keywords": ["shelby", "decentralized-storage", "ai", "blockchain", "aptos"],
+  "author": "erhnysr",
+  "license": "MIT",
+  "dependencies": {
+    "@shelby-protocol/sdk": "latest"
+  }
+}
