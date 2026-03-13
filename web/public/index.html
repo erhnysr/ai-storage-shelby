@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shelby Vibe Storage</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, sans-serif; background: #0a0a0a; color: #fff; min-height: 100vh; }
+    .header { padding: 24px 32px; border-bottom: 1px solid #1a1a1a; display: flex; align-items: center; gap: 12px; }
+    .logo { font-size: 20px; font-weight: 700; color: #fff; }
+    .badge { background: #1a1a2e; color: #6366f1; padding: 4px 10px; border-radius: 20px; font-size: 12px; border: 1px solid #6366f1; }
+    .container { max-width: 800px; margin: 0 auto; padding: 48px 32px; }
+    .hero { text-align: center; margin-bottom: 48px; }
+    .hero h1 { font-size: 42px; font-weight: 800; margin-bottom: 16px; background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p { color: #888; font-size: 16px; line-height: 1.6; }
+    .upload-box { background: #111; border: 2px dashed #333; border-radius: 16px; padding: 48px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 24px; }
+    .upload-box:hover { border-color: #6366f1; background: #111827; }
+    .upload-box.dragover { border-color: #6366f1; background: #111827; }
+    .upload-icon { font-size: 48px; margin-bottom: 16px; }
+    .upload-box h3 { font-size: 18px; margin-bottom: 8px; }
+    .upload-box p { color: #888; font-size: 14px; }
+    .btn { background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; border: none; padding: 14px 32px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 16px; transition: opacity 0.2s; }
+    .btn:hover { opacity: 0.9; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .result { background: #111; border: 1px solid #1a1a1a; border-radius: 16px; padding: 24px; margin-top: 24px; display: none; }
+    .result.success { border-color: #22c55e; }
+    .result.error { border-color: #ef4444; }
+    .result h3 { margin-bottom: 16px; font-size: 18px; }
+    .result.success h3 { color: #22c55e; }
+    .result.error h3 { color: #ef4444; }
+    .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1a1a1a; font-size: 14px; }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: #888; }
+    .info-value { color: #fff; font-family: monospace; max-width: 400px; overflow: hidden; text-overflow: ellipsis; }
+    .history { margin-top: 48px; }
+    .history h2 { font-size: 24px; margin-bottom: 24px; }
+    .history-item { background: #111; border: 1px solid #1a1a1a; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+    .history-item h4 { margin-bottom: 8px; }
+    .history-item p { color: #888; font-size: 13px; }
+    .loading { display: none; text-align: center; padding: 24px; color: #888; }
+    input[type="file"] { display: none; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 48px; }
+    .stat { background: #111; border: 1px solid #1a1a1a; border-radius: 12px; padding: 20px; text-align: center; }
+    .stat h3 { font-size: 28px; font-weight: 700; color: #6366f1; }
+    .stat p { color: #888; font-size: 13px; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">⚡ Shelby Vibe Storage</div>
+    <div class="badge">Testnet Live</div>
+  </div>
+
+  <div class="container">
+    <div class="hero">
+      <h1>Store Your AI Outputs On-Chain</h1>
+      <p>Upload AI-generated files to Shelby Protocol.<br>Every file gets SHA-256 hashed and recorded on Aptos blockchain.</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <h3 id="totalUploads">0</h3>
+        <p>Total Uploads</p>
+      </div>
+      <div class="stat">
+        <h3>~12s</h3>
+        <p>Avg Upload Time</p>
+      </div>
+      <div class="stat">
+        <h3>SHA-256</h3>
+        <p>Hash Algorithm</p>
+      </div>
+    </div>
+
+    <div class="upload-box" id="uploadBox">
+      <div class="upload-icon">📦</div>
+      <h3>Drop your AI-generated file here</h3>
+      <p>or click to browse — any file type supported</p>
+      <input type="file" id="fileInput">
+    </div>
+
+    <div id="selectedFile" style="color:#888;font-size:14px;margin-bottom:8px;display:none;"></div>
+    <button class="btn" id="uploadBtn" disabled>Upload to Shelby Testnet</button>
+
+    <div class="loading" id="loading">
+      ⏳ Uploading to Shelby testnet... please wait
+    </div>
+
+    <div class="result" id="result"></div>
+
+    <div class="history">
+      <h2>📋 Upload History</h2>
+      <div id="historyList"></div>
+    </div>
+  </div>
+
+  <script>
+    let selectedFile = null;
+
+    const uploadBox = document.getElementById("uploadBox");
+    const fileInput = document.getElementById("fileInput");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const loading = document.getElementById("loading");
+    const result = document.getElementById("result");
+
+    uploadBox.addEventListener("click", () => fileInput.click());
+
+    uploadBox.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      uploadBox.classList.add("dragover");
+    });
+
+    uploadBox.addEventListener("dragleave", () => uploadBox.classList.remove("dragover"));
+
+    uploadBox.addEventListener("drop", (e) => {
+      e.preventDefault();
+      uploadBox.classList.remove("dragover");
+      const file = e.dataTransfer.files[0];
+      if (file) setFile(file);
+    });
+
+    fileInput.addEventListener("change", (e) => {
+      if (e.target.files[0]) setFile(e.target.files[0]);
+    });
+
+    function setFile(file) {
+      selectedFile = file;
+      uploadBtn.disabled = false;
+      const info = document.getElementById("selectedFile");
+      info.style.display = "block";
+      info.textContent = "Selected: " + file.name + " (" + (file.size / 1024).toFixed(2) + " KB)";
+    }
+
+    uploadBtn.addEventListener("click", async () => {
+      if (!selectedFile) return;
+
+      uploadBtn.disabled = true;
+      loading.style.display = "block";
+      result.style.display = "none";
+
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+
+      try {
+        const res = await fetch("/upload", { method: "POST", body: formData });
+        const data = await res.json();
+
+        loading.style.display = "none";
+
+        if (data.success) {
+          result.className = "result success";
+          result.innerHTML = "<h3>✅ Upload Successful!</h3>" +
+            "<div class='info-row'><span class='info-label'>File</span><span class='info-value'>" + data.fileName + "</span></div>" +
+            "<div class='info-row'><span class='info-label'>SHA-256</span><span class='info-value'>" + data.hash + "</span></div>" +
+            "<div class='info-row'><span class='info-label'>Blob Name</span><span class='info-value'>" + data.blobName + "</span></div>" +
+            "<div class='info-row'><span class='info-label'>Timestamp</span><span class='info-value'>" + data.timestamp + "</span></div>" +
+            "<div class='info-row'><span class='info-label'>Size</span><span class='info-value'>" + (data.fileSize / 1024).toFixed(2) + " KB</span></div>";
+          loadHistory();
+        } else {
+          result.className = "result error";
+          result.innerHTML = "<h3>❌ Upload Failed</h3><p>" + data.error + "</p>";
+        }
+        result.style.display = "block";
+      } catch (err) {
+        loading.style.display = "none";
+        result.className = "result error";
+        result.innerHTML = "<h3>❌ Error</h3><p>" + err.message + "</p>";
+        result.style.display = "block";
+      }
+
+      uploadBtn.disabled = false;
+    });
+
+    async function loadHistory() {
+      try {
+        const res = await fetch("/list");
+        const data = await res.json();
+        document.getElementById("totalUploads").textContent = data.length;
+        const list = document.getElementById("historyList");
+        if (data.length === 0) {
+          list.innerHTML = "<p style='color:#888'>No uploads yet.</p>";
+          return;
+        }
+        list.innerHTML = data.reverse().map(item =>
+          "<div class='history-item'>" +
+          "<h4>" + item.fileName + "</h4>" +
+          "<p>Hash: " + item.hash.substring(0, 32) + "... | " + new Date(item.timestamp).toLocaleString() + "</p>" +
+          "</div>"
+        ).join("");
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    loadHistory();
+  </script>
+</body>
+</html>
