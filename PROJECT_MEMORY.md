@@ -36,3 +36,11 @@
 
 ## YENI SOHBETTE DEVAM
 https://github.com/erhnysr/ai-storage-shelby reposundaki PROJECT_MEMORY.md dosyasini oku ve kaldigimiz yerden devam et
+
+## GUNCELLEME - 14 Mart 2026
+- Testnet'e gecildi: shelby context use testnet
+- Upload BASARILI: 11-12 saniyede tamamlaniyor
+- SHA-256 verify calisiyoor
+- Aptos blockchain'e transaction yaziliyor
+- Discord ve Twitter'da paylasildi
+- Siradaki adim: web arayuzu + toplu upload
