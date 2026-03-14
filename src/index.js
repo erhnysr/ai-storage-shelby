@@ -41,7 +41,7 @@ function upload(filePath) {
 
   try {
     execSync(
-      "shelby upload " + filePath + " " + blobName + " -e 2026-12-31",
+      "shelby upload \"" + filePath + "\" \"" + blobName + "\" -e 2026-12-31 --assume-yes",
       { stdio: "inherit" }
     );
     const log = loadLog();
@@ -51,6 +51,53 @@ function upload(filePath) {
     console.log("Hash kaydedildi: " + hash.substring(0, 16) + "...");
   } catch (err) {
     console.error("Upload hatasi:", err.message);
+  }
+}
+
+function download(blobNameOrIndex, outputPath) {
+  const log = loadLog();
+
+  let blobName = blobNameOrIndex;
+
+  // Numara girilmisse logdan bul
+  const index = parseInt(blobNameOrIndex);
+  if (!isNaN(index) && index > 0 && index <= log.length) {
+    blobName = log[index - 1].blobName;
+    const fileName = log[index - 1].fileName;
+    outputPath = outputPath || ("downloaded-" + fileName);
+    console.log("\n=== SHELBY VIBE STORAGE - DOWNLOAD ===");
+    console.log("Blob     : " + blobName);
+    console.log("Kayit    : " + outputPath);
+  } else {
+    outputPath = outputPath || ("downloaded-" + path.basename(blobName));
+    console.log("\n=== SHELBY VIBE STORAGE - DOWNLOAD ===");
+    console.log("Blob     : " + blobName);
+    console.log("Kayit    : " + outputPath);
+  }
+
+  console.log("");
+
+  try {
+    execSync(
+      "shelby download \"" + blobName + "\" \"" + outputPath + "\"",
+      { stdio: "inherit" }
+    );
+    console.log("\nIndirme tamamlandi: " + outputPath);
+
+    // Hash dogrula
+    if (fs.existsSync(outputPath)) {
+      const downloadedHash = hashFile(outputPath);
+      const logEntry = log.find(e => e.blobName === blobName);
+      if (logEntry) {
+        if (downloadedHash === logEntry.hash) {
+          console.log("Hash DOGRULANDI: " + downloadedHash.substring(0, 16) + "...");
+        } else {
+          console.log("UYARI: Hash eslesmedi! Dosya degismis olabilir.");
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Download hatasi:", err.message);
   }
 }
 
@@ -66,6 +113,7 @@ function list() {
     console.log("    Tarih  : " + entry.timestamp);
     console.log("    Hash   : " + entry.hash.substring(0, 16) + "...");
     console.log("    Boyut  : " + (entry.fileSize / 1024).toFixed(2) + " KB");
+    console.log("    Blob   : " + entry.blobName);
   });
 }
 
@@ -94,11 +142,15 @@ function verify(filePath) {
   }
 }
 
-const [, , command, arg] = process.argv;
+const [, , command, arg, arg2] = process.argv;
 switch (command) {
   case "upload":
     if (!arg) { console.log("Kullanim: node src/index.js upload <dosya>"); process.exit(1); }
     upload(arg);
+    break;
+  case "download":
+    if (!arg) { console.log("Kullanim: node src/index.js download <blob-adi veya numara> [kayit-yolu]"); process.exit(1); }
+    download(arg, arg2);
     break;
   case "list":
     list();
@@ -109,7 +161,8 @@ switch (command) {
     break;
   default:
     console.log("\n=== SHELBY VIBE STORAGE CLI ===");
-    console.log("  upload <dosya>  -> Shelbiye yukle + hashle");
-    console.log("  list            -> Tum yuklemeleri listele");
-    console.log("  verify <dosya>  -> Dosya degisti mi kontrol et\n");
+    console.log("  upload <dosya>              -> Shelbiye yukle + hashle");
+    console.log("  download <blob veya numara> -> Shelbyfden indir + dogrula");
+    console.log("  list                        -> Tum yuklemeleri listele");
+    console.log("  verify <dosya>              -> Dosya degisti mi kontrol et\n");
 }
