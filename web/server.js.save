@@ -1,6 +1,7 @@
+cat > web/server.js << 'ENDOFFILE'
 const express = require("express");
 const multer = require("multer");
-const { spawnSync } = require("child_process");
+const { execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
@@ -23,26 +24,18 @@ app.post("/upload", upload.single("file"), (req, res) => {
   const timestamp = new Date().toISOString();
 
   try {
-    const result = spawnSync(
-      "shelby",
-      ["upload", filePath, blobName, "-e", "2026-12-31", "--assume-yes"],
-      { encoding: "utf8", input: "y\n" }
+    const result = execSync(
+      "shelby upload \"" + filePath + "\" \"" + blobName + "\" -e 2026-12-31",
+      { encoding: "utf8", stdio: "pipe", input: "y\n" }
     );
 
-    const output = (result.stdout || "") + (result.stderr || "");
-    console.log("Shelby output:", output);
-
-    const aptosMatch = output.match(/https:\/\/explorer\.aptoslabs\.com\/txn\/[^\s]+/);
-    const shelbyMatch = output.match(/https:\/\/explorer\.shelby\.xyz\/[^\s]+/);
+    const aptosMatch = result.match(/https:\/\/explorer\.aptoslabs\.com\/txn\/[^\s?]+\?network=\w+/);
+    const shelbyMatch = result.match(/https:\/\/explorer\.shelby\.xyz\/[^\s]+/);
 
     const aptosLink = aptosMatch ? aptosMatch[0] : null;
     const shelbyLink = shelbyMatch ? shelbyMatch[0] : null;
 
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-
-    if (result.status !== 0 && !output.includes("Upload complete")) {
-      return res.status(500).json({ error: "Upload hatasi: " + output });
-    }
+    fs.unlinkSync(filePath);
 
     res.json({
       success: true,
