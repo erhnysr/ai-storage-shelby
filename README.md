@@ -1,14 +1,13 @@
-# Shelby Vibe Storage
+# ⚡ Shelby Vibe Storage
 
 Decentralized storage for AI-generated outputs — built on [Shelby Protocol](https://shelby.xyz) and Aptos blockchain.
 
 ## 🚀 Live on Testnet!
 
-Successfully uploading and verifying AI-generated files on Shelby testnet.
-
 - Upload time: ~12s
 - SHA-256 hash verified on-chain
-- Aptos transaction recorded on every upload
+- Aptos + Shelby Explorer links on every upload
+- Download with automatic hash verification
 
 ## The Problem
 
@@ -19,60 +18,62 @@ When using AI tools (vibe coding, image generation, model outputs), your generat
 
 ## The Solution
 
-Shelby Vibe Storage stores your AI-generated outputs on Shelby decentralized hot storage network and records a SHA-256 hash on Aptos blockchain — giving you verifiable proof of creation.
+Shelby Vibe Storage stores your AI-generated outputs on Shelby decentralized hot storage and records a SHA-256 hash on Aptos blockchain — giving you verifiable proof of creation.
 
 ## Features
 
 - Upload any AI-generated file to Shelby testnet
 - SHA-256 hash recorded on Aptos blockchain
+- Download files with automatic hash verification
 - Verify file integrity at any time
 - Full upload history with timestamps
+- Web UI with drag and drop support
+- Direct links to Aptos and Shelby Explorer
 - No egress fees, access from anywhere
 
 ## Quick Start
 
 ### Install
-```bash
 npm install -g @shelby-protocol/cli
 shelby init
 git clone https://github.com/erhnysr/ai-storage-shelby
 cd ai-storage-shelby
 npm install
-```
 
-### Upload an AI-generated file
-```bash
+### CLI Usage
 node src/index.js upload ./my-ai-output.json
-```
-
-### List all uploads
-```bash
 node src/index.js list
-```
-
-### Verify a file
-```bash
+node src/index.js download 1
 node src/index.js verify ./my-ai-output.json
-```
 
-### Run the demo
-```bash
+### Web UI
+node web/server.js
+Open http://localhost:3000
+
+### Run Demo
 node examples/vibe-demo.js
-```
 
 ## How It Works
-```
-AI Tool → Generate Output → Shelby Vibe Storage → Shelby Testnet → Aptos Blockchain
-                                                        ↓
-                                              SHA-256 Hash Recorded
-                                              Timestamp Immutable
-                                              Verifiable Forever
-```
+
+AI Tool -> Generate Output -> Shelby Vibe Storage -> Shelby Testnet -> Aptos Blockchain
+                                                          |
+                                                SHA-256 Hash Recorded
+                                                Timestamp Immutable
+                                                Verifiable Forever
+
+## CLI Commands
+
+| Command | Description |
+|---------|-------------|
+| upload <file> | Upload to Shelby + record SHA-256 hash |
+| download <id> | Download from Shelby + verify hash |
+| verify <file> | Check if file has been modified |
+| list | Show all upload history |
 
 ## Use Cases
 
 - Vibe coding outputs — prove you generated that code on this date
-- AI image/audio generation — immutable proof of creation
+- AI image and audio generation — immutable proof of creation
 - AI model weights — version control on-chain
 - Dataset storage — no vendor lock-in, no egress fees
 
