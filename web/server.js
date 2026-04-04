@@ -142,6 +142,6 @@ app.get("/d/:id", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "download.html"));
 });
 
-app.listen(3000, () => {
+app.listen(process.env.PORT || 3000, () => {
   console.log("Shelby Vibe Storage: http://localhost:3000");
 });
