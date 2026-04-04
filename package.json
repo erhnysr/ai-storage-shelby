@@ -7,7 +7,8 @@
     "upload": "node src/upload.js",
     "download": "node src/download.js",
     "list": "node src/list.js",
-    "web": "node web/server.js"
+    "web": "node web/server.js",
+    "start": "node web/server.js"
   },
   "keywords": [
     "shelby",
